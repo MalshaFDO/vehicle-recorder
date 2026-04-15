@@ -1,13 +1,14 @@
 import {
-  S3Client,
-  ListObjectsV2Command,
   DeleteObjectCommand,
+  ListObjectsV2Command,
+  S3Client,
 } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
+import { getFolderAgeInDays, getR2Endpoint } from "@/lib/r2";
 
 const s3 = new S3Client({
   region: "auto",
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  endpoint: getR2Endpoint(),
   credentials: {
     accessKeyId: process.env.R2_ACCESS_KEY_ID!,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
@@ -27,17 +28,10 @@ export async function GET() {
     if (list.Contents) {
       for (const item of list.Contents) {
         const key = item.Key!;
-        
-        // 👉 get folder name (YYYY-MM-DD)
         const folder = key.split("/")[0];
+        const diffDays = getFolderAgeInDays(folder, now);
 
-        const folderDate = new Date(folder);
-
-        const diffDays =
-          (now.getTime() - folderDate.getTime()) / (1000 * 60 * 60 * 24);
-
-        // 🧨 delete entire folder items if older than 10 days
-        if (diffDays > 7) {
+        if (diffDays !== null && diffDays > 7) {
           await s3.send(
             new DeleteObjectCommand({
               Bucket: process.env.R2_BUCKET_NAME!,

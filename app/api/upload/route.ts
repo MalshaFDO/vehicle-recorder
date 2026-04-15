@@ -1,19 +1,6 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { NextRequest, NextResponse } from "next/server";
-
-function getR2Endpoint() {
-  const value = process.env.R2_ACCOUNT_ID?.trim();
-
-  if (!value) {
-    throw new Error("Missing R2_ACCOUNT_ID environment variable");
-  }
-
-  if (value.startsWith("http://") || value.startsWith("https://")) {
-    return value;
-  }
-
-  return `https://${value}.r2.cloudflarestorage.com`;
-}
+import { getR2Endpoint, getR2ObjectKey } from "@/lib/r2";
 
 const s3 = new S3Client({
   region: "auto",
@@ -38,9 +25,7 @@ export async function POST(req: NextRequest) {
       );
     }
     const buffer = Buffer.from(await file.arrayBuffer());
-    const today = new Date().toISOString().split("T")[0];
-
-    const fileName = `${today}/${vehicleNumber}-${Date.now()}.webm`;
+    const fileName = getR2ObjectKey(vehicleNumber);
 
     await s3.send(
       new PutObjectCommand({

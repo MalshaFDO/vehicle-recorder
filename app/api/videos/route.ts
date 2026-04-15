@@ -3,18 +3,11 @@ import {
   ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
-
-function getR2PublicBaseUrl() {
-  const value =
-    process.env.R2_PUBLIC_URL?.trim() ||
-    "https://pub-9f44a5b7fcfc49d9bfc9c9840bae1714.r2.dev";
-
-  return value.replace(/\/+$/, "");
-}
+import { getR2Endpoint, getR2PublicBaseUrl } from "@/lib/r2";
 
 const s3 = new S3Client({
   region: "auto",
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  endpoint: getR2Endpoint(),
   credentials: {
     accessKeyId: process.env.R2_ACCESS_KEY_ID!,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
@@ -31,10 +24,21 @@ export async function GET() {
     );
 
     const videos =
-      data.Contents?.map((item) => ({
-        key: item.Key,
-        url: `${publicBaseUrl}/${item.Key}`,
-      })) || [];
+      data.Contents?.slice()
+        .sort((a, b) => {
+          const timeA = a.LastModified?.getTime() ?? 0;
+          const timeB = b.LastModified?.getTime() ?? 0;
+
+          if (timeA !== timeB) {
+            return timeB - timeA;
+          }
+
+          return (b.Key ?? "").localeCompare(a.Key ?? "");
+        })
+        .map((item) => ({
+          key: item.Key,
+          url: `${publicBaseUrl}/${item.Key}`,
+        })) || [];
 
     return NextResponse.json({ videos });
   } catch (err) {

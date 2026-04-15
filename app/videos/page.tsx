@@ -30,9 +30,14 @@ export default function VideosPage() {
     return () => { active = false; };
   }, []);
 
-  const filteredVideos = videos.filter((video) =>
-    video.key.toLowerCase().includes(search.toLowerCase())
+  const filteredVideos = videos.filter((video) => {
+  const key = video.key.toLowerCase();
+  const date = video.key.split("/")[0];
+  return (
+    key.includes(search.toLowerCase()) ||
+    date.includes(search)
   );
+});
 
   return (
     <div className={styles.container}>
@@ -66,11 +71,14 @@ export default function VideosPage() {
               ? fileName.substring(0, fileName.lastIndexOf("-"))
               : fileName.replace(/\.[^/.]+$/, "");
 
+              const date = video.key.split("/")[0]; // YYYY-MM-DD
+
             return (
               <div key={index} className={styles.videoCard}>
                 <div className={styles.videoInfo}>
                   <span className={styles.icon}>Vehicle</span>
                   <span className={styles.plateNumber}>{vehicleNum}</span>
+                  <div className={styles.dateTag}>{date}</div>
                 </div>
                 <video src={video.url} controls className={styles.videoPlayer} />
                 <a

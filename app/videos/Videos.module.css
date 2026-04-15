@@ -89,6 +89,14 @@
   margin-bottom: 1.2rem;
 }
 
+.dateTag {
+  margin-left: auto;   /* 👉 THIS pushes it to right */
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #10b981;
+  letter-spacing: 0.05em;
+}
+
 .icon {
   padding: 0.35rem 0.7rem;
   border-radius: 8px;

@@ -1,22 +1,26 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 export default function RecordPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // when button clicked → open camera
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoURL, setVideoURL] = useState<string | null>(null);
+  const [vehicleNumber, setVehicleNumber] = useState("");
+
+  // open camera
   const handleButtonClick = () => {
     fileInputRef.current?.click();
   };
 
-  // when video is recorded
+  // when video selected
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
     if (file) {
-      console.log("Video file:", file);
-      alert("Video captured successfully ✅");
+      setVideoFile(file);
+      setVideoURL(URL.createObjectURL(file)); // preview
     }
   };
 
@@ -24,20 +28,23 @@ export default function RecordPage() {
     <div style={{ padding: "20px" }}>
       <h1>Vehicle Recorder</h1>
 
-      <button
-        onClick={handleButtonClick}
-        style={{
-          padding: "15px 20px",
-          fontSize: "16px",
-          backgroundColor: "black",
-          color: "white",
-          borderRadius: "8px",
-        }}
-      >
-        Record Vehicle
-      </button>
+      {/* Record Button */}
+      {!videoFile && (
+        <button
+          onClick={handleButtonClick}
+          style={{
+            padding: "15px 20px",
+            fontSize: "16px",
+            backgroundColor: "black",
+            color: "white",
+            borderRadius: "8px",
+          }}
+        >
+          Record Vehicle
+        </button>
+      )}
 
-      {/* hidden input to trigger camera */}
+      {/* Hidden input */}
       <input
         type="file"
         accept="video/*"
@@ -46,6 +53,36 @@ export default function RecordPage() {
         style={{ display: "none" }}
         onChange={handleVideoChange}
       />
+
+      {/* Video Preview */}
+      {videoURL && (
+        <div style={{ marginTop: "20px" }}>
+          <video
+            src={videoURL}
+            controls
+            style={{ width: "100%", borderRadius: "10px" }}
+          />
+        </div>
+      )}
+
+      {/* Vehicle Number Input */}
+      {videoFile && (
+        <div style={{ marginTop: "20px" }}>
+          <input
+            type="text"
+            placeholder="Enter Vehicle Number"
+            value={vehicleNumber}
+            onChange={(e) => setVehicleNumber(e.target.value)}
+            style={{
+              padding: "10px",
+              width: "100%",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              marginBottom: "10px",
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -15,12 +15,10 @@ export default function VideosPage() {
 
   useEffect(() => {
     let active = true;
-
     const loadVideos = async () => {
       try {
         const res = await fetch("/api/videos");
         const data = await res.json();
-
         if (active && res.ok) {
           setVideos(data.videos || []);
         }
@@ -28,12 +26,8 @@ export default function VideosPage() {
         console.error("Fetch error:", err);
       }
     };
-
     loadVideos();
-
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, []);
 
   const filteredVideos = videos.filter((video) =>
@@ -42,19 +36,23 @@ export default function VideosPage() {
 
   return (
     <div className={styles.container}>
-      <Link href="/record" className={styles.backLink}>
-        Back to Recorder
-      </Link>
+      <nav className={styles.navHeader}>
+        <Link href="/record" className={styles.backLink}>
+          ← Back to Recorder
+        </Link>
+      </nav>
 
       <h1 className={styles.header}>Vehicle Database</h1>
 
-      <input
-        type="text"
-        className={styles.searchBar}
-        placeholder="Search vehicle number (e.g. CAA 7145)"
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-      />
+      <div className={styles.searchWrapper}>
+        <input
+          type="text"
+          className={styles.searchBar}
+          placeholder="Search vehicle number..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
 
       {filteredVideos.length === 0 ? (
         <div className={styles.emptyState}>
@@ -80,7 +78,7 @@ export default function VideosPage() {
                   download={`${vehicleNum}.mp4`}
                   className={styles.downloadButton}
                 >
-                  Download Video
+                  Download Record
                 </a>
               </div>
             );

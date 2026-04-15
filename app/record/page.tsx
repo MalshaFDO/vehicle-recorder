@@ -20,32 +20,26 @@ export default function RecordPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
+  // Memory Cleanup
   useEffect(() => {
     return () => {
-      if (videoURL) {
-        URL.revokeObjectURL(videoURL);
-      }
+      if (videoURL) URL.revokeObjectURL(videoURL);
     };
   }, [videoURL]);
 
   const handleVideoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
+    if (!selectedFile) return;
 
-    if (!selectedFile) {
-      return;
-    }
-
-    if (videoURL) {
-      URL.revokeObjectURL(videoURL);
-    }
-
+    if (videoURL) URL.revokeObjectURL(videoURL);
     setVideoFile(selectedFile);
     setVideoURL(URL.createObjectURL(selectedFile));
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault(); // Support form submission
+    
     const normalized = vehicleNumber.trim().toUpperCase();
-
     if (!videoFile || !normalized) {
       showNotification("Please fill all fields", "error");
       return;
@@ -58,15 +52,13 @@ export default function RecordPage() {
 
     try {
       const res = await fetch("/api/upload", { method: "POST", body: formData });
-
-      if (!res.ok) {
-        throw new Error();
-      }
+      if (!res.ok) throw new Error();
 
       showNotification("Record saved successfully", "success");
       setVideoFile(null);
       setVideoURL(null);
       setVehicleNumber("");
+      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch {
       showNotification("Upload failed. Try again.", "error");
     } finally {
@@ -76,26 +68,65 @@ export default function RecordPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.navHeader}>
+      <nav className={styles.navHeader}>
         <h1 className={styles.header}>Vehicle Recorder</h1>
         <Link href="/videos" className={styles.dbLink}>
           Database
         </Link>
-      </div>
+      </nav>
 
       {toast && (
-        <div className={`${styles.toast} ${styles[toast.type]}`}>
-          {toast.type === "success" ? "Success" : "Error"}: {toast.message}
+        <div className={`${styles.toast} ${styles[toast.type]}`} role="alert">
+          {toast.message}
         </div>
       )}
 
-      <p className={styles.hint}>Record 10-20 seconds of the vehicle clearly.</p>
+      <section className={styles.contentCard}>
+        <p className={styles.hint}>Record 10-20 seconds of the vehicle clearly.</p>
 
-      {!videoFile && (
-        <button className={styles.recordButton} onClick={() => fileInputRef.current?.click()}>
-          Capture Video
-        </button>
-      )}
+        {!videoFile ? (
+          <button
+            className={styles.recordButton}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Capture Video
+          </button>
+        ) : (
+          <div className={styles.previewContainer}>
+            <video src={videoURL!} controls className={styles.videoPreview} />
+
+            <form className={styles.inputGroup} onSubmit={handleUpload}>
+              <input
+                className={styles.vehicleInput}
+                type="text"
+                placeholder="Vehicle Number (e.g. ABC-1234)"
+                value={vehicleNumber}
+                required
+                onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
+              />
+
+              <button
+                type="submit"
+                className={styles.uploadButton}
+                disabled={loading}
+              >
+                {loading ? "Processing..." : "Save Record"}
+              </button>
+
+              <button
+                type="button"
+                className={styles.retakeButton}
+                onClick={() => {
+                  setVideoFile(null);
+                  setVideoURL(null);
+                }}
+              >
+                Retake Video
+              </button>
+            </form>
+          </div>
+        )}
+      </section>
 
       <input
         type="file"
@@ -105,26 +136,6 @@ export default function RecordPage() {
         style={{ display: "none" }}
         onChange={handleVideoChange}
       />
-
-      {videoURL && (
-        <div className={styles.previewContainer}>
-          <video src={videoURL} controls className={styles.videoPreview} />
-
-          <div className={styles.inputGroup}>
-            <input
-              className={styles.vehicleInput}
-              type="text"
-              placeholder="Vehicle Number (e.g. ABC-1234)"
-              value={vehicleNumber}
-              onChange={(event) => setVehicleNumber(event.target.value.toUpperCase())}
-            />
-
-            <button className={styles.uploadButton} onClick={handleUpload} disabled={loading}>
-              {loading ? "Processing..." : "Save Record"}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

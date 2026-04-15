@@ -1,16 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import styles from "./Login.module.css";
 
+const REMEMBERED_LOGIN_KEY = "rememberedLogin";
+
+function getRememberedLogin() {
+  if (typeof window === "undefined") {
+    return {
+      username: "",
+      password: "",
+      rememberMe: false,
+    };
+  }
+
+  const savedLogin = window.localStorage.getItem(REMEMBERED_LOGIN_KEY);
+
+  if (!savedLogin) {
+    return {
+      username: "",
+      password: "",
+      rememberMe: false,
+    };
+  }
+
+  try {
+    const parsedLogin = JSON.parse(savedLogin) as {
+      username?: string;
+      password?: string;
+    };
+
+    return {
+      username: parsedLogin.username ?? "",
+      password: parsedLogin.password ?? "",
+      rememberMe: Boolean(parsedLogin.username && parsedLogin.password),
+    };
+  } catch {
+    window.localStorage.removeItem(REMEMBERED_LOGIN_KEY);
+
+    return {
+      username: "",
+      password: "",
+      rememberMe: false,
+    };
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberedLogin] = useState(getRememberedLogin);
+  const [username, setUsername] = useState(rememberedLogin.username);
+  const [password, setPassword] = useState(rememberedLogin.password);
+  const [rememberMe, setRememberMe] = useState(rememberedLogin.rememberMe);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const showNotification = (message: string, type: "success" | "error") => {
@@ -18,13 +63,24 @@ export default function LoginPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleLogin = async () => {
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
     try {
-      const email = `${username}@app.com`;
+      const normalizedUsername = username.trim();
+      const email = `${normalizedUsername}@app.com`;
       await signInWithEmailAndPassword(auth, email, password);
 
       if (rememberMe) {
-        localStorage.setItem("rememberedUser", username);
+        localStorage.setItem(
+          REMEMBERED_LOGIN_KEY,
+          JSON.stringify({
+            username: normalizedUsername,
+            password,
+          })
+        );
+      } else {
+        localStorage.removeItem(REMEMBERED_LOGIN_KEY);
       }
 
       router.push("/record");
@@ -42,33 +98,47 @@ export default function LoginPage() {
       )}
 
       <div className={styles.card}>
-        <h1 className={styles.title}>Welcome to AutoFlash</h1>
-        <input
-          className={styles.inputField}
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
-        />
-        <input
-          className={styles.inputField}
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
-        <label className={styles.optionsRow}>
-          <input
-            type="checkbox"
-            className={styles.checkbox}
-            checked={rememberMe}
-            onChange={(event) => setRememberMe(event.target.checked)}
+        <div className={styles.logoWrap}>
+          <Image
+            src="/AFLOGO.jpg"
+            alt="AutoFlash logo"
+            className={styles.logo}
+            width={180}
+            height={180}
+            priority
           />
-          <span className={styles.label}>Remember me</span>
-        </label>
-        <button className={styles.button} onClick={handleLogin}>
-          Log In
-        </button>
+        </div>
+        <h1 className={styles.title}>Welcome to AutoFlash</h1>
+        <form onSubmit={handleLogin}>
+          <input
+            className={styles.inputField}
+            type="text"
+            placeholder="Username"
+            value={username}
+            required
+            onChange={(event) => setUsername(event.target.value)}
+          />
+          <input
+            className={styles.inputField}
+            type="password"
+            placeholder="Password"
+            value={password}
+            required
+            onChange={(event) => setPassword(event.target.value)}
+          />
+          <label className={styles.optionsRow}>
+            <input
+              type="checkbox"
+              className={styles.checkbox}
+              checked={rememberMe}
+              onChange={(event) => setRememberMe(event.target.checked)}
+            />
+            <span className={styles.label}>Remember me</span>
+          </label>
+          <button type="submit" className={styles.button}>
+            Log In
+          </button>
+        </form>
       </div>
     </div>
   );

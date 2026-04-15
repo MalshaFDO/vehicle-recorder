@@ -1,19 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f3f6fb;
-  --foreground: #111827;
-  --surface: rgba(255, 255, 255, 0.9);
-  --surface-strong: #ffffff;
-  --border: rgba(148, 163, 184, 0.24);
-  --shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Deeper, more "Pro" dark tones */
+  --background: #020617; 
+  --foreground: #f8fafc;
+  /* Glassmorphism surfaces should be dark, not white, for this look */
+  --surface: rgba(15, 23, 42, 0.6);
+  --surface-strong: #0f172a;
+  --border: rgba(255, 255, 255, 0.08);
+  --accent: #10b981; /* That nice green from your screenshots */
 }
 
 * {
@@ -22,42 +17,50 @@
 
 html {
   min-height: 100%;
-  color-scheme: light;
+  /* CRITICAL: Change to dark to prevent white flashes/scrollbars */
+  color-scheme: dark;
+  overflow-x: hidden;
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at top, rgba(16, 185, 129, 0.14), transparent 32%),
-    linear-gradient(180deg, #f8fbff 0%, #eef4fb 45%, #e9f0f8 100%);
+  /* Premium Deep Glow Gradient */
+  background: 
+    radial-gradient(circle at top center, rgba(16, 185, 129, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 0% 0%, rgba(30, 41, 59, 0.4) 0%, transparent 50%),
+    #020617; 
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
-a {
-  color: inherit;
+body,
+.appMain {
+  width: 100%;
 }
 
-button,
+img,
+video {
+  max-width: 100%;
+}
+
 input,
+button,
 textarea,
 select {
   font: inherit;
 }
 
-img,
-video {
-  display: block;
-  max-width: 100%;
+.appMain {
+  display: flex;
+  flex-direction: column;
 }
 
 @media (max-width: 640px) {
   body {
-    background:
-      radial-gradient(circle at top, rgba(16, 185, 129, 0.12), transparent 42%),
-      linear-gradient(180deg, #f8fbff 0%, #edf4fb 100%);
+    background-attachment: scroll;
   }
 }

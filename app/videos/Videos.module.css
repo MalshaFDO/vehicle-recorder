@@ -1,45 +1,52 @@
 .container {
-  max-width: 1100px;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
-  min-height: calc(100vh - 76px);
-  padding: clamp(1rem, 3vw, 2.5rem) clamp(1rem, 4vw, 1.5rem) calc(2rem + env(safe-area-inset-bottom));
+  background: transparent; /* Remove any background-color here */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.navHeader {
+  margin-bottom: 1rem;
 }
 
 .backLink {
-  display: inline-flex;
-  align-items: center;
-  color: #475569;
+  color: #94a3b8;
   text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
   transition: color 0.2s;
 }
 
 .backLink:hover {
-  color: #0f172a;
+  color: #10b981;
 }
 
 .header {
-  margin: 0 0 1.25rem;
-  font-size: clamp(2rem, 6vw, 3rem);
+  margin: 0 0 1.5rem;
+  font-size: clamp(2rem, 6vw, 2.8rem);
   font-weight: 900;
-  color: #0f172a;
+  color: #ffffff;
   letter-spacing: -0.05em;
-  line-height: 1;
+  line-height: 1.1;
+}
+
+.searchWrapper {
+  margin-bottom: 2.5rem;
 }
 
 .searchBar {
   width: 100%;
-  padding: 0.95rem 1rem;
-  font-size: 1rem;
-  border: 1px solid rgba(148, 163, 184, 0.32);
+  padding: 1rem 1.25rem;
+  font-size: 1.1rem;
+  border: 1px solid #222;
   border-radius: 16px;
-  margin-bottom: 2rem;
-  background: rgba(255, 255, 255, 0.84);
-  color: #0f172a;
-  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
-  backdrop-filter: blur(12px);
+  background: #111; /* Dark input */
+  color: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   transition: all 0.2s ease;
 }
 
@@ -50,108 +57,121 @@
 .searchBar:focus {
   outline: none;
   border-color: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
 }
 
 .videoGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.2rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
 }
 
 .videoCard {
-  background: rgba(255, 255, 255, 0.84);
+  background: #0a0a0a; /* Dark Card */
   border-radius: 24px;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  padding: 1rem;
+  border: 1px solid #1a1a1a;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.1);
-  backdrop-filter: blur(14px);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
 .videoCard:hover {
   transform: translateY(-4px);
-  box-shadow: 0 26px 56px rgba(15, 23, 42, 0.14);
+  border-color: #333;
 }
 
 .videoInfo {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 1.2rem;
 }
 
 .icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.45rem 0.7rem;
-  border-radius: 999px;
-  background: rgba(16, 185, 129, 0.12);
-  color: #047857;
-  font-size: 0.82rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  font-size: 0.75rem;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
 }
 
 .plateNumber {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  color: #0f172a;
+  color: #ffffff;
   text-transform: uppercase;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .videoPlayer {
   width: 100%;
-  border-radius: 16px;
+  border-radius: 14px;
   background: #000;
   aspect-ratio: 16 / 9;
-  margin-bottom: 1rem;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  margin-bottom: 1.2rem;
+  border: 1px solid #222;
 }
 
 .downloadButton {
   width: 100%;
-  padding: 0.9rem 1rem;
-  background-color: #0f172a;
-  color: #ffffff;
+  padding: 0.9rem;
+  background-color: #ffffff; /* White button for contrast on dark */
+  color: #000000;
   text-decoration: none;
-  border-radius: 14px;
+  border-radius: 12px;
   font-weight: 700;
   text-align: center;
   font-size: 0.95rem;
-  transition: opacity 0.2s ease, transform 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .downloadButton:hover {
-  opacity: 0.95;
+  background-color: #10b981;
+  color: #ffffff;
 }
 
 .emptyState {
   text-align: center;
-  padding: 4rem 1.25rem;
-  color: #475569;
-  font-size: 1.05rem;
-  background: rgba(255, 255, 255, 0.72);
+  padding: 5rem 1rem;
+  color: #64748b;
+  background: #0a0a0a;
   border-radius: 24px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid #1a1a1a;
 }
 
 @media (max-width: 640px) {
+  .container {
+    min-height: auto;
+    padding: 1rem;
+  }
+
+  .header {
+    margin-bottom: 1.25rem;
+  }
+
+  .searchWrapper {
+    margin-bottom: 1.5rem;
+  }
+
+  .searchBar {
+    font-size: 1rem;
+    padding: 0.95rem 1rem;
+  }
+
   .videoGrid {
     grid-template-columns: 1fr;
   }
 
   .videoCard {
+    padding: 1rem;
     border-radius: 20px;
-    padding: 0.9rem;
   }
 
-  .plateNumber {
-    font-size: 1rem;
+  .emptyState {
+    padding: 3rem 1rem;
+    border-radius: 20px;
   }
 }

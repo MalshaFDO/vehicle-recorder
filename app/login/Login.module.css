@@ -3,6 +3,9 @@
   display: grid;
   place-items: center;
   padding: 1.25rem;
+  background:
+    radial-gradient(circle at top, rgba(16, 185, 129, 0.18), transparent 28%),
+    linear-gradient(180deg, #172033 0%, #111827 48%, #0b1220 100%);
 }
 
 .card {
@@ -13,6 +16,20 @@
   border-radius: 24px;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
   backdrop-filter: blur(14px);
+}
+
+.logoWrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.logo {
+  width: min(10rem, 40vw);
+  height: auto;
+  border-radius: 22px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  object-fit: cover;
 }
 
 .title {

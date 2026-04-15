@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   title: "AutoFlash Vehicle Recorder",
   description: "Capture vehicle videos, save records, and review your video database on any device.",
   applicationName: "AutoFlash",
+  icons: {
+    icon: "/AFLOGO.jpg",
+    apple: "/AFLOGO.jpg",
+  },
 };
 
 export default function RootLayout({
@@ -31,7 +35,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 appMain">{children}</main>
         <Footer />
       </body>
     </html>

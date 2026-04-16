@@ -5,11 +5,17 @@ import Link from "next/link";
 import styles from "./Record.module.css";
 
 export default function RecordPage() {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [recorder, setRecorder] = useState<MediaRecorder | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoURL, setVideoURL] = useState<string | null>(null);
+
   const [vehicleNumber, setVehicleNumber] = useState("");
+  const [recording, setRecording] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
@@ -20,55 +26,87 @@ export default function RecordPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Memory Cleanup
-  useEffect(() => {
-    return () => {
-      if (videoURL) URL.revokeObjectURL(videoURL);
-    };
-  }, [videoURL]);
+  // 🎥 START CAMERA
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+        audio: true,
+      });
 
-  // 🔥 Slightly improved handler (no structural change)
-  const handleVideoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
+      setStream(mediaStream);
 
-    if (!selectedFile) {
-      console.log("No file received (possible device issue)");
-      return;
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+
+      const mediaRecorder = new MediaRecorder(mediaStream);
+      let chunks: Blob[] = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "video/webm" });
+        const file = new File([blob], `video-${Date.now()}.webm`, {
+          type: "video/webm",
+        });
+
+        setVideoFile(file);
+        setVideoURL(URL.createObjectURL(file));
+
+        // stop camera
+        mediaStream.getTracks().forEach((t) => t.stop());
+      };
+
+      setRecorder(mediaRecorder);
+      mediaRecorder.start();
+      setRecording(true);
+    } catch (err) {
+      console.error(err);
+      showNotification("Camera not supported", "error");
     }
-
-    console.log("File received:", selectedFile);
-
-    if (videoURL) URL.revokeObjectURL(videoURL);
-
-    setVideoFile(selectedFile);
-    setVideoURL(URL.createObjectURL(selectedFile));
   };
 
+  // ⏹ STOP RECORDING
+  const stopRecording = () => {
+    recorder?.stop();
+    setRecording(false);
+  };
+
+  // ☁️ UPLOAD
   const handleUpload = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
     const normalized = vehicleNumber.trim().toUpperCase();
+
     if (!videoFile || !normalized) {
       showNotification("Please fill all fields", "error");
       return;
     }
 
     setLoading(true);
+
     const formData = new FormData();
     formData.append("file", videoFile);
     formData.append("vehicleNumber", normalized);
 
     try {
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
       if (!res.ok) throw new Error();
 
       showNotification("Record saved successfully", "success");
+
       setVideoFile(null);
       setVideoURL(null);
       setVehicleNumber("");
-      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch {
-      showNotification("Upload failed. Try again.", "error");
+      showNotification("Upload failed", "error");
     } finally {
       setLoading(false);
     }
@@ -84,42 +122,57 @@ export default function RecordPage() {
       </nav>
 
       {toast && (
-        <div className={`${styles.toast} ${styles[toast.type]}`} role="alert">
+        <div className={`${styles.toast} ${styles[toast.type]}`}>
           {toast.message}
         </div>
       )}
 
       <section className={styles.contentCard}>
-        <p className={styles.hint}>
-          Record 10-20 seconds of the vehicle clearly.
-        </p>
-
         {!videoFile ? (
           <>
-            <button
-              className={styles.recordButton}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              Capture Video
-            </button>
+            {/* 🎥 LIVE CAMERA */}
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              className={styles.videoPreview}
+            />
 
-            {/* ✅ Added fallback hint (NO UI break) */}
-            <p className={styles.hint}>
-              If video does not appear after recording, tap "Capture Video" again.
-            </p>
+            {!recording ? (
+              <button
+                className={styles.recordButton}
+                onClick={startCamera}
+              >
+                Start Recording
+              </button>
+            ) : (
+              <button
+                className={styles.uploadButton}
+                onClick={stopRecording}
+              >
+                Stop Recording
+              </button>
+            )}
           </>
         ) : (
           <div className={styles.previewContainer}>
-            <video src={videoURL!} controls className={styles.videoPreview} />
+            <video
+              src={videoURL!}
+              controls
+              className={styles.videoPreview}
+            />
 
             <form className={styles.inputGroup} onSubmit={handleUpload}>
               <input
                 className={styles.vehicleInput}
                 type="text"
-                placeholder="Vehicle Number (e.g. ABC-1234)"
+                placeholder="Vehicle Number"
                 value={vehicleNumber}
                 required
-                onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  setVehicleNumber(e.target.value.toUpperCase())
+                }
               />
 
               <button
@@ -127,7 +180,7 @@ export default function RecordPage() {
                 className={styles.uploadButton}
                 disabled={loading}
               >
-                {loading ? "Processing..." : "Save Record"}
+                {loading ? "Saving..." : "Save Record"}
               </button>
 
               <button
@@ -138,23 +191,12 @@ export default function RecordPage() {
                   setVideoURL(null);
                 }}
               >
-                Retake Video
+                Retake
               </button>
             </form>
           </div>
         )}
       </section>
-
-      {/* ✅ Native camera input (UNCHANGED behavior, just cleaned) */}
-      <input
-        type="file"
-        accept="video/*"
-        capture="environment"
-        ref={fileInputRef}
-        style={{ display: "none" }}
-        onChange={handleVideoChange}
-        onClick={(e) => ((e.target as HTMLInputElement).value = "")}
-      />
     </div>
   );
 }

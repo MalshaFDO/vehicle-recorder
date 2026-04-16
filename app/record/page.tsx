@@ -140,7 +140,6 @@ export default function RecordPage() {
       <input
             type="file"
             accept="video/*"
-            capture
             ref={fileInputRef}
             style={{ display: "none" }}
             onChange={handleVideoChange}

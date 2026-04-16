@@ -28,13 +28,22 @@ export default function RecordPage() {
   }, [videoURL]);
 
   const handleVideoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  setTimeout(() => {
     const selectedFile = event.target.files?.[0];
-    if (!selectedFile) return;
+
+    if (!selectedFile) {
+      console.log("No file yet, retrying...");
+      return;
+    }
+
+    console.log("File received:", selectedFile);
 
     if (videoURL) URL.revokeObjectURL(videoURL);
+
     setVideoFile(selectedFile);
     setVideoURL(URL.createObjectURL(selectedFile));
-  };
+  }, 300); // 👈 small delay fixes Android bug
+};
 
   const handleUpload = async (e?: React.FormEvent) => {
     if (e) e.preventDefault(); // Support form submission
@@ -129,13 +138,14 @@ export default function RecordPage() {
       </section>
 
       <input
-        type="file"
-        accept="video/*"
-        capture
-        ref={fileInputRef}
-        style={{ display: "none" }}
-        onChange={handleVideoChange}
-      />
+            type="file"
+            accept="video/*"
+            capture
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            onChange={handleVideoChange}
+            onClick={(e) => ((e.target as HTMLInputElement).value = "")}
+           />
     </div>
   );
 }

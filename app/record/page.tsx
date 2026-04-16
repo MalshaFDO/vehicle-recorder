@@ -9,12 +9,14 @@ export default function RecordPage() {
 
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [recorder, setRecorder] = useState<MediaRecorder | null>(null);
+
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoURL, setVideoURL] = useState<string | null>(null);
 
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [recording, setRecording] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [seconds, setSeconds] = useState(0);
 
   const [toast, setToast] = useState<{
     message: string;
@@ -24,6 +26,27 @@ export default function RecordPage() {
   const showNotification = (message: string, type: "success" | "error") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  // ⏱ TIMER
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (recording) {
+      interval = setInterval(() => {
+        setSeconds((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setSeconds(0);
+    }
+
+    return () => clearInterval(interval);
+  }, [recording]);
+
+  const formatTime = (sec: number) => {
+    const mins = Math.floor(sec / 60);
+    const secs = sec % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   // 🎥 START CAMERA
@@ -56,7 +79,6 @@ export default function RecordPage() {
         setVideoFile(file);
         setVideoURL(URL.createObjectURL(file));
 
-        // stop camera
         mediaStream.getTracks().forEach((t) => t.stop());
       };
 
@@ -69,7 +91,7 @@ export default function RecordPage() {
     }
   };
 
-  // ⏹ STOP RECORDING
+  // ⏹ STOP
   const stopRecording = () => {
     recorder?.stop();
     setRecording(false);
@@ -129,32 +151,35 @@ export default function RecordPage() {
 
       <section className={styles.contentCard}>
         {!videoFile ? (
-          <>
-            {/* 🎥 LIVE CAMERA */}
+          <div className={styles.cameraWrapper}>
             <video
               ref={videoRef}
               autoPlay
               muted
               playsInline
-              className={styles.videoPreview}
+              className={styles.cameraView}
             />
 
-            {!recording ? (
-              <button
-                className={styles.recordButton}
-                onClick={startCamera}
-              >
-                Start Recording
-              </button>
-            ) : (
-              <button
-                className={styles.uploadButton}
-                onClick={stopRecording}
-              >
-                Stop Recording
-              </button>
+            {recording && (
+              <div className={styles.timer}>
+                ● {formatTime(seconds)}
+              </div>
             )}
-          </>
+
+            <div className={styles.controls}>
+              {!recording ? (
+                <button
+                  className={styles.recordCircle}
+                  onClick={startCamera}
+                />
+              ) : (
+                <button
+                  className={styles.stopCircle}
+                  onClick={stopRecording}
+                />
+              )}
+            </div>
+          </div>
         ) : (
           <div className={styles.previewContainer}>
             <video
